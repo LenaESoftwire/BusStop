@@ -5,14 +5,53 @@ const read = require('readline').createInterface({
 });
 
 
+// read.question(`Please enter your bus stop code: `, code => {
 
-//user input = something
-const code = '';
+//     arrivalsReadAPI(code);
+//     read.close();
+//     })
 
-read.question(`Please enter your bus stop code: `, code => {
-    readAPI(code);
+read.question(`Please enter your post code: `, postcode => {
+
+    getCoordinates(postcode);
     read.close();
     })
+
+
+function getCoordinates (postcode) {
+    fetch(`https://api.postcodes.io/postcodes/${postcode}`)
+    .then(response => response.json())
+    .then(body => coordinates(body));
+
+
+}
+
+function coordinates (body) {
+    let coordinates = [body["result"]["longitude"], body["result"]["latitude"]];
+    nearestBusStopsAPI(coordinates);
+}
+
+function nearestBusStopsAPI (coordsArr) {
+    const lon = coordsArr[0];
+    const lat = coordsArr[1];
+    fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram`)
+    .then(response => response.json())
+    .then(body => closeBusStops(body))
+}
+
+
+
+function closeBusStops(body) {
+    console.log(typeof(body));
+    console.log(body.length);
+    // body.forEach(function (obj) {
+    //     console.log(obj["naptanId"]);
+    //     console.log(obj["distance"]);
+
+// })
+}
+
+//https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram
 
 // function readAPI (code) {
 //     fetch(`https://api.tfl.gov.uk/StopPoint/490008660N/Arrivals`)
@@ -20,13 +59,12 @@ read.question(`Please enter your bus stop code: `, code => {
 //         .then(body => sortBusesByArrival(body));
 // };
 
-function readAPI (code) {
-    const output = await fetch(`https://api.tfl.gov.uk/StopPoint/${code}/Arrivals`)
-        .then(response => response.json())
-        .then(body => sortBusesByArrival(body));
-};
+// function arrivalsReadAPI (code) {
+//     fetch(`https://api.tfl.gov.uk/StopPoint/${code}/Arrivals`)
+//         .then(response => response.json())
+//         .then(body => sortBusesByArrival(body));
+// };
     
-
 
 function sortBusesByArrival (body) {
     let buses = body.sort((bus1, bus2) => {
@@ -52,3 +90,4 @@ function printResults(body) {
 
 
 //490008660N
+//NaptanPublicBusCoachTram
