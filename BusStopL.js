@@ -1,40 +1,36 @@
 const fetch = require('node-fetch');
 const readline = require('readline-sync');
-// ({
-//     input: process.stdin,
-//     output: process.stdout
-// });
 
-// read.question(`Please enter your bus stop code: `, code => {
-
-//     arrivalsReadAPI(code);
-//     read.close();
-//     })
-
+//const userPostcode = getPostCode();
+const data = getAPIFromPostcode(getPostCode());
+const userCoordinates = getCoordinates(data);
+//console.log(userCoordinates);
 
 function getPostCode () {
-    let postcode = '';
     console.log('Please enter your postcode');
     return readline.prompt();
-
     
 }
-const userPostcode = getPostCode();
 
-function getCoordinates (userPostcode) {
-    let coordinates = {};
-    fetch(`https://api.postcodes.io/postcodes/${userPostcode}`)
+
+
+async function getAPIFromPostcode (postcode) {
+    const responce = await fetch(`https://api.postcodes.io/postcodes/${postcode}`)
     .then(response => response.json())
-    .then(body => {const coordinates = [body["result"]["longitude"], body["result"]["latitude"]]});
-    console.log(coordinates);
-
-
+    .then(data => {
+        let result = data;
+        return result});
+    console.log(responce);
+    
 }
+//console.log(getAPIFromPostcode(getPostCode()));
 
-// // function getCoordinates (body) {
-// //     let coordinates = [body["result"]["longitude"], body["result"]["latitude"]];
-//     nearestBusStopsAPI(coordinates);
-// }
+function getCoordinates (body) {
+    console.log(body);
+    //let coordinates = [body["result"]["longitude"], body["result"]["latitude"]];
+    //return coordinates;
+    //nearestBusStopsAPI(coordinates);
+}
 
 // function nearestBusStopsAPI (coordsArr) {
 //     const lon = coordsArr[0];
