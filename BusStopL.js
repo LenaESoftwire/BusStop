@@ -1,46 +1,59 @@
 const fetch = require('node-fetch');
 const readline = require('readline-sync');
 
-//const userPostcode = getPostCode();
-const data = getAPIFromPostcode(getPostCode());
-const userCoordinates = getCoordinates(data);
-//console.log(userCoordinates);
+main();
+async function main () {
+
+    const userPostcode = getPostCode();
+    const coordinates = await getCoordinates(userPostcode);
+    //console.log(coordinates);
+    const busStops = await getNearestBusStops(coordinates);
+
+    for (let stop of busStops) {
+        const buses = await getBuses(stop['naptanId']);
+        console.log(stop['naptanId']);
+        console.log(buses);
+    }
+    
+    //console.log(busStops);
+
+}
 
 function getPostCode () {
     console.log('Please enter your postcode');
-    return readline.prompt();
-    
+    return readline.prompt();    
 }
 
-
-
-async function getAPIFromPostcode (postcode) {
-    const responce = await fetch(`https://api.postcodes.io/postcodes/${postcode}`)
-    .then(response => response.json())
+async function getCoordinates (postcode) {
+    const response = await fetch(`https://api.postcodes.io/postcodes/${postcode}`)
     .then(data => {
-        let result = data;
-        return result});
-    console.log(responce);
+        return data.json()});
+    //console.log(response);
+    return [response["result"]["latitude"], response["result"]["longitude"]];
     
 }
-//console.log(getAPIFromPostcode(getPostCode()));
 
-function getCoordinates (body) {
-    console.log(body);
-    //let coordinates = [body["result"]["longitude"], body["result"]["latitude"]];
-    //return coordinates;
-    //nearestBusStopsAPI(coordinates);
+async function getNearestBusStops (coordinates) {
+    const lat = coordinates[0];
+    const lon = coordinates[1];
+    const busStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram`)
+    .then (data => data.json())
+    .then (data => data['stopPoints'].slice(0, 2));
+    //.then (data => console.log(data));
+    return busStops;
 }
 
-// function nearestBusStopsAPI (coordsArr) {
-//     const lon = coordsArr[0];
-//     const lat = coordsArr[1];
-//     fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram`)
+async function getBuses(busStopNaptanId) {
+    const buses = await fetch(`https://api.tfl.gov.uk/StopPoint/${busStopNaptanId}/Arrivals`)
+        .then(data => data.json());
+    return buses;
+
+}
 //     .then(response => response.json())
 //     .then(body => getCloseBusStops(body))
 // }
 
-// //Array.isArray(body)
+// //Array.isArdata ray(body)
 
 
 // let closeBusStops = [];
@@ -72,11 +85,7 @@ function getCoordinates (body) {
 // //         .then(body => sortBusesByArrival(body));
 // // };
 
-// function arrivalsReadAPI (code) {
-//     fetch(`https://api.tfl.gov.uk/StopPoint/${code}/Arrivals`)
-//         .then(response => response.json())
-//         .then(body => sortBusesByArrival(body));
-// };
+
     
 
 // function sortBusesByArrival (body) {
