@@ -35,8 +35,9 @@ function nearestBusStopsAPI (coordsArr) {
     const lon = coordsArr[0];
     const lat = coordsArr[1];
     fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram`)
-    .then(response => response.json())
-    .then(body => getCloseBusStops(body))
+    .then(response => response.json());
+    return response;
+    //.then(body => getCloseBusStops(body))
 }
 
 //Array.isArray(body)
@@ -47,12 +48,15 @@ async function getCloseBusStops (body) {
     // console.log(body);
     // console.log(body.length);
     // let final;
-    const final = await body.stopPoints.sort((stop1, stop2) => {
+    const final = await nearestBusStopsAPI(body)
+    .then (body => {
+        body.stopPoints.sort((stop1, stop2) => {
         return stop1.distance - stop2.distance;
         // console.log(obj["naptanId"]);
         // console.log(obj["distance"]);
-
-    }).slice(0,2);
+        })
+    })
+    .then(body => body.slice(0,2));
     final.forEach(function (obj) {
         closeBusStops.push(obj["stationNaptan"])
     });
