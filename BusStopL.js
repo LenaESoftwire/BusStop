@@ -4,7 +4,7 @@ const readline = require('readline-sync');
 main();
 async function main () {
 
-    const userPostcode = getPostCode();
+    const userPostcode = 'EH11 4PB'; //getPostCode();
     const coordinates = await getCoordinates(userPostcode);
     const busStops = await getNearestBusStops(coordinates);
     for (let stop of busStops) {
@@ -27,7 +27,7 @@ function printBuses (topBuses) {
 }
 
 function getPostCode () {
-    console.log('Please enter your postcode'); 
+    console.log('Please enter your postcode:'); 
     const postcode = readline.prompt(); 
         return postcode;  
 }
@@ -35,11 +35,11 @@ function getPostCode () {
 async function getCoordinates (postcode) {
     const response = await fetch(`https://api.postcodes.io/postcodes/${postcode}`)
     .then(data => {
-    return data.json()
+        return data.json()
     }); 
        
     while (response["error"] == "Invalid postcode") {
-        console.log(response["error"] + " Try it again. Make sure it is a real postcode.")
+        console.log("Error: " + response["error"] + `. Please try again. The postcode you entered was: "${postcode}".`)
         return await getCoordinates(getPostCode());
     }
 
@@ -50,17 +50,39 @@ async function getNearestBusStops (coordinates) {
     const lat = coordinates[0];
     const lon = coordinates[1];
     const busStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram`)
-    .then (data => data.json())
-    .then (data => data['stopPoints'].slice(0, 2));
-    return busStops;
+        .then (data => data.json())
+        .then (data => data['stopPoints'].filter(a => a.stopType==='NaptanPublicBusCoachTram').slice(0, 2));
+    console.log(busStops);
+    // if (!busStops['modes'] === []) {
+    //     throw "There is no bus stops near this Postcode"
+    // }
+
+    try {
+        if (busStops.length < 2) {
+            throw err;
+        } 
+        return busStops;
+    } 
+
+    catch (err) {
+        console.log("There is no bus stops");
+    }
+    
 }
 
 async function getBuses(busStopNaptanId) {
-    const buses = await fetch(`https://api.tfl.gov.uk/StopPoint/${busStopNaptanId}/Arrivals`)
+        const buses = await fetch(`https://api.tfl.gov.uk/StopPoint/${busStopNaptanId}/Arrivals`)
         .then(data => data.json());
+    
     return buses;
+    
+
+
 }
 
+//EH11 4PB
 
-// //490008660N
-// //NaptanPublicBusCoachTram
+// 490008660N
+// NaptanPublicBusCoachTram
+// DA3 7PE
+//NW119UA
