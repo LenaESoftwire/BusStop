@@ -7,13 +7,22 @@ async function main () {
     const userPostcode = 'EH11 4PB'; //getPostCode();
     const coordinates = await getCoordinates(userPostcode);
     const busStops = await getNearestBusStops(coordinates);
-    for (let stop of busStops) {
-        await getBuses(stop['naptanId'])
-        .then (data => {
-            const topBuses = data.slice(0,5)
-            printBuses(topBuses)
-        });
+    if (busStops.length===0) {
+        console.log("There are no bus stops around");
     }
+    else {
+        for (stop of busStops) {
+            await getBuses(stop['naptanId'])
+            .then (data => {
+                const topBuses = data
+                .sort ((bus1, bus2) => {return bus1['timeToStation']-bus2['timeToStation']})
+                .slice(0,5);
+                console.log(topBuses);
+                printBuses(topBuses)
+            });
+        }
+        
+    }  
 }
 
 function printBuses (topBuses) {
@@ -29,7 +38,7 @@ function printBuses (topBuses) {
 function getPostCode () {
     console.log('Please enter your postcode:'); 
     const postcode = readline.prompt(); 
-        return postcode;  
+    return postcode;  
 }
 
 async function getCoordinates (postcode) {
@@ -53,20 +62,7 @@ async function getNearestBusStops (coordinates) {
         .then (data => data.json())
         .then (data => data['stopPoints'].filter(a => a.stopType==='NaptanPublicBusCoachTram').slice(0, 2));
     console.log(busStops);
-    // if (!busStops['modes'] === []) {
-    //     throw "There is no bus stops near this Postcode"
-    // }
-
-    try {
-        if (busStops.length < 2) {
-            throw err;
-        } 
-        return busStops;
-    } 
-
-    catch (err) {
-        console.log("There is no bus stops");
-    }
+    return busStops;
     
 }
 
@@ -86,3 +82,5 @@ async function getBuses(busStopNaptanId) {
 // NaptanPublicBusCoachTram
 // DA3 7PE
 //NW119UA
+// 'EH11 4PB';
+//
