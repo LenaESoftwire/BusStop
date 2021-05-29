@@ -4,7 +4,7 @@ const readline = require('readline-sync');
 main();
 async function main () {
 
-    const userPostcode = 'EH11 4PB'; //getPostCode();
+    const userPostcode = 'NW22QE'; //getPostCode();
     const coordinates = await getCoordinates(userPostcode);
     const busStops = await getNearestBusStops(coordinates);
     if (busStops.length===0) {
@@ -65,7 +65,9 @@ async function getNearestBusStops (coordinates) {
     const lon = coordinates[1];
     const busStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram`)
         .then (data => data.json())
-        .then (data => data['stopPoints'].filter(a => a.stopType==='NaptanPublicBusCoachTram').slice(0, 2));
+        .then (data => data['stopPoints']
+            .filter(a => a.modes.includes('bus'))
+            .slice(0, 2));
     console.log(busStops);
     return busStops;
     
@@ -87,5 +89,6 @@ async function getBuses(busStopNaptanId) {
 // NaptanPublicBusCoachTram
 // DA3 7PE
 //NW119UA
-// 'EH11 4PB';
+// 'EH11 4PB'
+// https://api.tfl.gov.uk/Journey/JourneyResults/NW22AJ/to/490009463W
 //
