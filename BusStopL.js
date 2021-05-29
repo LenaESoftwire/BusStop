@@ -5,6 +5,8 @@ main();
 async function main () {
 
     const userPostcode = 'NW22QE'; //getPostCode();
+    const directionNeeded = needDirection();
+    console.log(directionNeeded);
     const coordinates = await getCoordinates(userPostcode);
     const busStops = await getNearestBusStops(coordinates);
     if (busStops.length===0) {
@@ -22,28 +24,26 @@ async function main () {
                 console.log(`There are no buses coming to the ${stop.indicator} ${stop.commonName}`);
             }
             else {
-                printBuses(topBuses)
+                printBuses(topBuses);
             }
         });
     }
-    
 }  
-
-
-function printBuses (topBuses) {
-    topBuses.forEach(busObj => {
-        console.log("----------------")
-        console.log(`Bus top ${busObj["platformName"]} ${busObj["stationName"]}: `);
-        console.log(`Bus number: ${busObj["lineId"]}`);
-        console.log(`Time to wait: ${parseInt(busObj["timeToStation"]/60)} min  ${busObj["timeToStation"]%60} seconds`)
-        console.log(`Direction: ${busObj["towards"]}`)
-    })
-}
 
 function getPostCode () {
     console.log('Please enter your postcode:'); 
     const postcode = readline.prompt(); 
     return postcode;  
+}
+
+function needDirection() {
+    console.log(`Do you want to see directions to your stops?\n Yes/No`);
+    let directionNeeded = readline.prompt();
+    while ((directionNeeded!== 'Yes') && (directionNeeded!== 'No')) {
+        console.log(`You answer was ${directionNeeded}. Please try again. \n`);
+        directionNeeded = readline.prompt();
+    }    
+    return directionNeeded;
 }
 
 async function getCoordinates (postcode) {
@@ -53,7 +53,7 @@ async function getCoordinates (postcode) {
     }); 
        
     while (response["error"] == "Invalid postcode") {
-        console.log("Error: " + response["error"] + `. Please try again. The postcode you entered was: "${postcode}".`)
+        console.log(`Error: ${response["error"]}. Please try again. \n The postcode you entered was: "${postcode}".`)
         return await getCoordinates(getPostCode());
     }
 
@@ -69,8 +69,7 @@ async function getNearestBusStops (coordinates) {
             .filter(a => a.modes.includes('bus'))
             .slice(0, 2));
     console.log(busStops);
-    return busStops;
-    
+    return busStops;    
 }
 
 async function getBuses(busStopNaptanId) {
@@ -78,13 +77,26 @@ async function getBuses(busStopNaptanId) {
         .then(data => data.json());
     
     return buses;
-    
+}
 
+function printBuses (topBuses) {
+    topBuses.forEach(busObj => {
+        console.log("----------------")
+        console.log(`Bus top ${busObj["platformName"]} ${busObj["stationName"]}: `);
+        console.log(`Bus number: ${busObj["lineId"]}`);
+        console.log(`Time to wait: ${parseInt(busObj["timeToStation"]/60)} min  ${busObj["timeToStation"]%60} seconds`)
+        console.log(`Direction: ${busObj["towards"]}`)
+    })
+}
+
+function getDirectionToStop(userPostcode, busStop) {
 
 }
 
-//EH11 4PB
+function printDirections(directions) {
 
+}
+//EH11 4PB
 // 490008660N
 // NaptanPublicBusCoachTram
 // DA3 7PE
