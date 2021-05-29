@@ -4,11 +4,11 @@ const readline = require('readline-sync');
 main();
 async function main () {
 
-    const userPostcode = 'N200UA'; //getPostCode();
+    const userPostcode = 'EH11 4PB'; //getPostCode();
     const coordinates = await getCoordinates(userPostcode);
     const busStops = await getNearestBusStops(coordinates);
     if (busStops.length===0) {
-        console.log("There are no bus stops around this location: " + postcode);
+        console.log(`There are no bus stops around this location: ${userPostcode}`);
         return;
     }
     for (stop of busStops) {
