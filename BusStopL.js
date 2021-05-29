@@ -4,34 +4,39 @@ const readline = require('readline-sync');
 main();
 async function main () {
 
-    const userPostcode = 'EH11 4PB'; //getPostCode();
+    const userPostcode = 'N200UA'; //getPostCode();
     const coordinates = await getCoordinates(userPostcode);
     const busStops = await getNearestBusStops(coordinates);
     if (busStops.length===0) {
-        console.log("There are no bus stops around");
+        console.log("There are no bus stops around this location: " + postcode);
+        return;
     }
-    else {
-        for (stop of busStops) {
-            await getBuses(stop['naptanId'])
-            .then (data => {
-                const topBuses = data
-                .sort ((bus1, bus2) => {return bus1['timeToStation']-bus2['timeToStation']})
-                .slice(0,5);
-                console.log(topBuses);
+    for (stop of busStops) {
+        await getBuses(stop['naptanId'])
+        .then (data => {
+            const topBuses = data
+            .sort ((bus1, bus2) => {return bus1['timeToStation']-bus2['timeToStation']})
+            .slice(0,5);
+            //console.log(topBuses);
+            if (topBuses.length === 0) {
+                console.log(`There are no buses coming to the ${stop.indicator} ${stop.commonName}`);
+            }
+            else {
                 printBuses(topBuses)
-            });
-        }
-        
-    }  
-}
+            }
+        });
+    }
+    
+}  
+
 
 function printBuses (topBuses) {
     topBuses.forEach(busObj => {
         console.log("----------------")
-        console.log("Bus Stop: " + busObj["stationName"] + ", Platform: " + busObj["platformName"]);
-        console.log("Bus number: " + busObj["lineId"]);
-        console.log("Time to wait: " + busObj["timeToStation"] + " seconds")
-        console.log("Direction: " + busObj["towards"])
+        console.log(`Bus top ${busObj["platformName"]} ${busObj["stationName"]}: `);
+        console.log(`Bus number: ${busObj["lineId"]}`);
+        console.log(`Time to wait: ${parseInt(busObj["timeToStation"]/60)} min  ${busObj["timeToStation"]%60} seconds`)
+        console.log(`Direction: ${busObj["towards"]}`)
     })
 }
 
