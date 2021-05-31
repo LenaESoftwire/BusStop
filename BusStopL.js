@@ -23,17 +23,20 @@ async function main () {
                 console.log(`There are no buses coming to the ${stop.indicator} ${stop.commonName}`);
             }
             else {
-                //printBuses(topBuses);
+                printBuses(topBuses);
             }
         });
     }
-    //const directionNeeded = needDirection();
+    //const directionNeeded = ;
     //console.log(directionNeeded);
-    busStops.forEach (async busStop => {
-        const instructions = await getDirectionToStop(userPostcode, busStop) 
-        //console.log(instructions.journeys[0]);
-        printDirections(instructions);
-    });
+    if (needDirection()) {
+        busStops.forEach (async busStop => {
+            const instructions = await getDirectionToStop(userPostcode, busStop) 
+            //console.log(instructions.journeys[0]);
+            printDirections(busStop, instructions);
+        });
+    }
+    else console.log('Ok')
 }  
 
 function getPostCode () {
@@ -49,8 +52,9 @@ function needDirection() {
         console.log(`You answer was ${directionNeeded}. Please try again. \n`);
         console.log(`Do you want to see directions to your stops?\n Yes/No`);
         directionNeeded = readline.prompt();
-    }    
-    return directionNeeded;
+    }
+    if (directionNeeded==='Yes') return true;   
+    else return false;
 }
 
 async function getCoordinates (postcode) {
@@ -70,7 +74,7 @@ async function getCoordinates (postcode) {
 async function getNearestBusStops (coordinates) {
     const lat = coordinates[0];
     const lon = coordinates[1];
-    const busStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram`)
+    const busStops = await fetch(`https://api.tfl.gov.uk/StopPoint/?lat=${lat}&lon=${lon}&stopTypes=NaptanPublicBusCoachTram&radius=1000`)
         .then (data => data.json())
         .then (data => data['stopPoints']
             .filter(a => a.modes.includes('bus'))
@@ -89,7 +93,7 @@ async function getBuses(busStopNaptanId) {
 function printBuses (topBuses) {
     topBuses.forEach(busObj => {
         console.log("----------------")
-        console.log(`Bus top ${busObj["platformName"]} ${busObj["stationName"]}: `);
+        console.log(`Bus stop ${busObj["platformName"]} ${busObj["stationName"]}: `);
         console.log(`Bus number: ${busObj["lineId"]}`);
         console.log(`Time to wait: ${parseInt(busObj["timeToStation"]/60)} min  ${busObj["timeToStation"]%60} seconds`)
         console.log(`Direction: ${busObj["towards"]}`)
@@ -105,17 +109,17 @@ async function getDirectionToStop(userPostcode, busStop) {
         
 }
 
-function printDirections(instructions) {
+function printDirections(busStop, instructions) {
     const instr = instructions.journeys[0].legs[0];
-    console.log(`${instr.instruction.summary} ${instr.arrivalPoint} bus stop from ${instructions.journeyVector.from}: `);
-    //console.log(instr);
+    console.log(`${instr.instruction.summary} ${busStop.indicator} from ${instructions.journeyVector.from}: `);
+    //console.log(busStop);
     const steps = instr.instruction.steps;
     //console.log(steps.length);
-    let finalInstructions = ''
+    let finalInstructions = [];
     steps.forEach((step) => {
-        finalInstructions += `${step.descriptionHeading} ${step.description} \n`;
+        finalInstructions.push(`${step.descriptionHeading} ${step.description}`);
     })    
-    console.log(finalInstructions)
+    console.log(finalInstructions.join(', '));
    //console.log(`${instructions.journeys[0].legs[0].instruction.steps[0].descriptionHeading}${instructions.journeys[0].legs[0].instruction.steps[0].description}`);//.description}`)
 }
 //EH11 4PB
