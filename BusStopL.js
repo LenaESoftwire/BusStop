@@ -4,9 +4,8 @@ const readline = require('readline-sync');
 main();
 async function main () {
 
-    const userPostcode = 'NW22QE'; //getPostCode();
-    const directionNeeded = needDirection();
-    console.log(directionNeeded);
+    const userPostcode = getPostCode();
+    
     const coordinates = await getCoordinates(userPostcode);
     const busStops = await getNearestBusStops(coordinates);
     if (busStops.length===0) {
@@ -24,10 +23,17 @@ async function main () {
                 console.log(`There are no buses coming to the ${stop.indicator} ${stop.commonName}`);
             }
             else {
-                printBuses(topBuses);
+                //printBuses(topBuses);
             }
         });
     }
+    //const directionNeeded = needDirection();
+    //console.log(directionNeeded);
+    busStops.forEach (async busStop => {
+        const instructions = await getDirectionToStop(userPostcode, busStop) 
+        //console.log(instructions.journeys[0]);
+        printDirections(instructions);
+    });
 }  
 
 function getPostCode () {
@@ -41,6 +47,7 @@ function needDirection() {
     let directionNeeded = readline.prompt();
     while ((directionNeeded!== 'Yes') && (directionNeeded!== 'No')) {
         console.log(`You answer was ${directionNeeded}. Please try again. \n`);
+        console.log(`Do you want to see directions to your stops?\n Yes/No`);
         directionNeeded = readline.prompt();
     }    
     return directionNeeded;
@@ -68,7 +75,7 @@ async function getNearestBusStops (coordinates) {
         .then (data => data['stopPoints']
             .filter(a => a.modes.includes('bus'))
             .slice(0, 2));
-    console.log(busStops);
+    // console.log(busStops);
     return busStops;    
 }
 
@@ -89,12 +96,27 @@ function printBuses (topBuses) {
     })
 }
 
-function getDirectionToStop(userPostcode, busStop) {
-
+async function getDirectionToStop(userPostcode, busStop) {
+    // console.log(busStop)
+    const instructions = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${userPostcode}/to/${busStop.naptanId}`)
+        .then (data => data.json())
+        .then (data => data)// console.log(data));
+        return instructions;
+        
 }
 
-function printDirections(directions) {
-
+function printDirections(instructions) {
+    const instr = instructions.journeys[0].legs[0];
+    console.log(`${instr.instruction.summary} ${instr.arrivalPoint} bus stop from ${instructions.journeyVector.from}: `);
+    //console.log(instr);
+    const steps = instr.instruction.steps;
+    //console.log(steps.length);
+    let finalInstructions = ''
+    steps.forEach((step) => {
+        finalInstructions += `${step.descriptionHeading} ${step.description} \n`;
+    })    
+    console.log(finalInstructions)
+   //console.log(`${instructions.journeys[0].legs[0].instruction.steps[0].descriptionHeading}${instructions.journeys[0].legs[0].instruction.steps[0].description}`);//.description}`)
 }
 //EH11 4PB
 // 490008660N
@@ -103,4 +125,5 @@ function printDirections(directions) {
 //NW119UA
 // 'EH11 4PB'
 // https://api.tfl.gov.uk/Journey/JourneyResults/NW22AJ/to/490009463W
-//
+//data.journeys[0].legs
+// summary + forEach steps.description+descriptionHeading
