@@ -18,7 +18,6 @@ async function main () {
             const topBuses = data
             .sort ((bus1, bus2) => {return bus1['timeToStation']-bus2['timeToStation']})
             .slice(0,5);
-            //console.log(topBuses);
             if (topBuses.length === 0) {
                 console.log(`There are no buses coming to the ${stop.indicator} ${stop.commonName}`);
             }
@@ -27,12 +26,10 @@ async function main () {
             }
         });
     }
-    //const directionNeeded = ;
-    //console.log(directionNeeded);
+    
     if (needDirection()) {
         busStops.forEach (async busStop => {
             const instructions = await getDirectionToStop(userPostcode, busStop) 
-            //console.log(instructions.journeys[0]);
             printDirections(busStop, instructions);
         });
     }
@@ -79,7 +76,6 @@ async function getNearestBusStops (coordinates) {
         .then (data => data['stopPoints']
             .filter(a => a.modes.includes('bus'))
             .slice(0, 2));
-    // console.log(busStops);
     return busStops;    
 }
 
@@ -95,16 +91,15 @@ function printBuses (topBuses) {
         console.log("----------------")
         console.log(`Bus stop ${busObj["platformName"]} ${busObj["stationName"]}: `);
         console.log(`Bus number: ${busObj["lineId"]}`);
-        console.log(`Time to wait: ${parseInt(busObj["timeToStation"]/60)} min  ${busObj["timeToStation"]%60} seconds`)
+        console.log(`Time to wait: ${parseInt(busObj["timeToStation"]/60)} min ${busObj["timeToStation"]%60} seconds`)
         console.log(`Direction: ${busObj["towards"]}`)
     })
 }
 
 async function getDirectionToStop(userPostcode, busStop) {
-    // console.log(busStop)
     const instructions = await fetch(`https://api.tfl.gov.uk/Journey/JourneyResults/${userPostcode}/to/${busStop.naptanId}`)
         .then (data => data.json())
-        .then (data => data)// console.log(data));
+        .then (data => data)
         return instructions;
         
 }
@@ -112,22 +107,12 @@ async function getDirectionToStop(userPostcode, busStop) {
 function printDirections(busStop, instructions) {
     const instr = instructions.journeys[0].legs[0];
     console.log(`${instr.instruction.summary} ${busStop.indicator} from ${instructions.journeyVector.from}: `);
-    //console.log(busStop);
     const steps = instr.instruction.steps;
-    //console.log(steps.length);
     let finalInstructions = [];
     steps.forEach((step) => {
         finalInstructions.push(`${step.descriptionHeading} ${step.description}`);
     })    
-    console.log(finalInstructions.join(', '));
-   //console.log(`${instructions.journeys[0].legs[0].instruction.steps[0].descriptionHeading}${instructions.journeys[0].legs[0].instruction.steps[0].description}`);//.description}`)
+    console.log(finalInstructions.join(', ').replace("  ", " "));
 }
 //EH11 4PB
-// 490008660N
-// NaptanPublicBusCoachTram
 // DA3 7PE
-//NW119UA
-// 'EH11 4PB'
-// https://api.tfl.gov.uk/Journey/JourneyResults/NW22AJ/to/490009463W
-//data.journeys[0].legs
-// summary + forEach steps.description+descriptionHeading
